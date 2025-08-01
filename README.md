@@ -36,7 +36,6 @@ Facilitar a transição de sistemas legados para tecnologias modernas, permitind
   - Tailwind CSS
   - shadcn/ui (Componentes)
   - React Router DOM
-  - TanStack Query
 
 ## 🎨 Design System
 
@@ -51,7 +50,7 @@ O projeto utiliza um design system moderno e consistente:
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/codeinsighter.git
+git clone https://github.com/GabrielFMontoni/CodeInsighter.git
 ```
 
 2. Instale as dependências:

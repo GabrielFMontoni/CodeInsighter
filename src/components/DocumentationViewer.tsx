@@ -109,7 +109,7 @@ const DocumentationViewer = () => {
 
         {/* Project Overview */}
         <Card className="p-8 mb-8 bg-gradient-card border-border/50">
-          <div className="grid md:grid-cols-4 gap-6 mb-6">
+         <div className="flex flex-col md:flex-row justify-center gap-12 mb-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-primary mb-2">
                 {mockDocumentation.overview.totalFiles}
@@ -122,17 +122,17 @@ const DocumentationViewer = () => {
               </div>
               <div className="text-sm text-muted-foreground">Linhas de Código</div>
             </div>
-            <div className="text-center">
+            {/* <div className="text-center">
               <div className="text-3xl font-bold text-accent mb-2">
                 {mockDocumentation.overview.modernizationScore}/10
               </div>
               <div className="text-sm text-muted-foreground">Score de Modernização</div>
-            </div>
-            <div className="text-center">
+            </div> */}
+            {/* <div className="text-center">
               <Badge variant="secondary" className="text-lg px-4 py-2">
                 {mockDocumentation.overview.language}
               </Badge>
-            </div>
+            </div> */}
           </div>
           
           <div className="flex justify-center">

@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@langchain/google-genai": "^0.2.16",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "langchain": "^0.3.31"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

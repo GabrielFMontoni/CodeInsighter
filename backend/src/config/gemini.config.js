@@ -42,6 +42,7 @@ Para cada função encontrada, forneça:
     - Devem se basear **somente no código fornecido** e na análise estática.
     - Devem estar adaptadas à linguagem do código.
     - Não inventar melhorias que não se aplicam à linguagem ou ao código.
+    - Toda função deve ter uma sugestão.
 
 Análise Estática (em português-BR):
 {analysis}

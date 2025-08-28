@@ -36,7 +36,7 @@ const DocumentationViewer = () => {
     })
       .then(res => res.json())
       .then(data => {
-   
+
         const adaptedData = {
           overview: { totalFiles: data.funcoes.length },
           files: [
@@ -70,21 +70,21 @@ const DocumentationViewer = () => {
       });
   }, []);
 
-if (loading) {
-  return (
-    <p className="pt-32 py-16 px-24 text-center">
-      Carregando documentação...
-    </p>
-  );
-}
+  if (loading) {
+    return (
+      <p className="pt-32 py-16 px-24 text-center">
+        Carregando documentação...
+      </p>
+    );
+  }
 
-if (error) {
-  return (
-    <p className="pt-32 py-16 px-24 text-center text-red-500">
-      {error}
-    </p>
-  );
-}
+  if (error) {
+    return (
+      <p className="pt-32 py-16 px-24 text-center text-red-500">
+        {error}
+      </p>
+    );
+  }
 
 
   const selected = documentation.files[selectedFile];
@@ -226,41 +226,55 @@ if (error) {
                 </TabsContent>
 
                 <TabsContent value="architecture" className="mt-6">
-                  <Card className="p-6 bg-background/30 border-border/30">
-                    <h4 className="text-lg font-semibold mb-4">Análise Arquitetural</h4>
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <h5 className="font-medium mb-2 text-muted-foreground">Padrão Atual</h5>
-                        <Badge variant="secondary" className="text-sm">
-                          {selected.architecture.currentPattern}
-                        </Badge>
+                  <div className="space-y-6">
+                    <Card className="p-6 bg-background/30 border-border/30">
+                      <h4 className="text-lg font-semibold mb-4">Análise Arquitetural</h4>
+
+                      <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                          <h5 className="font-medium mb-2 text-muted-foreground">Padrão Atual</h5>
+                          <Badge variant="secondary" className="text-sm">
+                            Monólito
+                          </Badge>
+                        </div>
+                        <div>
+                          <h5 className="font-medium mb-2 text-muted-foreground">Padrão Sugerido</h5>
+                          <Badge variant="default" className="text-sm">
+                            Microserviços
+                          </Badge>
+                        </div>
                       </div>
-                      <div>
-                        <h5 className="font-medium mb-2 text-muted-foreground">Padrão Sugerido</h5>
-                        <Badge variant="default" className="text-sm">
-                          {selected.architecture.suggestedPattern}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="mb-6">
-                      <h5 className="font-medium mb-3">Recomendações de Migração:</h5>
-                      <div className="space-y-3">
-                        {selected.architecture.recommendations?.map((rec: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3">
+
+                      <div className="mb-6">
+                        <h5 className="font-medium mb-3">Recomendações de Migração:</h5>
+                        <div className="space-y-3">
+                          <div className="flex items-start space-x-3">
                             <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                            <p className="text-sm">{rec}</p>
+                            <p className="text-sm">Dividir módulos críticos em serviços independentes</p>
                           </div>
-                        ))}
+                          <div className="flex items-start space-x-3">
+                            <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                            <p className="text-sm">Implementar comunicação via mensageria</p>
+                          </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                            <p className="text-sm">Adicionar camada de observabilidade (logs e métricas)</p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Complexidade de Migração:</span>
-                        <Badge variant="default">{selected.architecture.migrationComplexity}</Badge>
+
+                      <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">Complexidade de Migração:</span>
+                          <Badge variant="destructive">
+                            Alta
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </div>
                 </TabsContent>
+
 
                 <TabsContent value="insights" className="mt-6">
                   <Card className="p-6 bg-gradient-to-r from-primary/10 to-accent/10 border-border/30">

@@ -36,8 +36,12 @@ Refatore o código legado abaixo aplicando boas práticas.
 Para cada função encontrada, forneça:
 - Nome da função
 - Lista de parâmetros
-- Descrição curta da função
-- Sugestão de modernização
+- Descrição detalhada da função (explique o que ela faz, o tipo de dado retornado, a estrutura desse retorno e, quando aplicável, os principais atributos dos objetos envolvidos)
+- Sugestões de modernização:
+    - Devem ser **recomendações**, usando verbos no infinitivo (ex.: "Substituir", "Utilizar", "Adicionar").
+    - Devem se basear **somente no código fornecido** e na análise estática.
+    - Devem estar adaptadas à linguagem do código.
+    - Não inventar melhorias que não se aplicam à linguagem ou ao código.
 
 Análise Estática (em português-BR):
 {analysis}

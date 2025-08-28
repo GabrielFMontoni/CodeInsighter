@@ -1,9 +1,14 @@
 import runRefactoring from "../services/refactorService.js";
 
 const staticAnalysisResults = `
-- Uso de 'var' em vez de 'let'/'const'.
-- Concatenação de strings ineficiente.
-- Complexidade ciclomática pode ser reduzida.
+
+Sugestões de modernização (em tom de recomendação, descrevendo ações a serem feitas e não como algo já feito).  
+Exemplos de estilo:  
+
+- Substituir 'var' por 'let' ou 'const'.  
+- Utilizar template literals para concatenação de strings.  
+- Considerar separar a classe Produto em um arquivo próprio.  
+
 `;
 
 const legacyCode = `

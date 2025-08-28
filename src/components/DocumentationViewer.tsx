@@ -70,10 +70,25 @@ const DocumentationViewer = () => {
       });
   }, []);
 
-  if (loading) return <p className="text-center py-16">Carregando documentação...</p>;
-  if (error) return <p className="text-center py-16 text-red-500">{error}</p>;
+if (loading) {
+  return (
+    <p className="pt-32 py-16 px-24 text-center">
+      Carregando documentação...
+    </p>
+  );
+}
+
+if (error) {
+  return (
+    <p className="pt-32 py-16 px-24 text-center text-red-500">
+      {error}
+    </p>
+  );
+}
+
 
   const selected = documentation.files[selectedFile];
+
 
   return (
     <section className="pt-28 py-16 px-6">

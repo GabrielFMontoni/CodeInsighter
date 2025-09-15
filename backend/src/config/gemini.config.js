@@ -30,30 +30,61 @@ const formatInstructions = outputParser.getFormatInstructions();
 
 const promptTemplate = new PromptTemplate({
     template: `
-Você é um arquiteto de software sênior em {language}.
-Refatore o código legado abaixo aplicando boas práticas.
+Você é um arquiteto de software sênior especializado em {language}.
 
-Para cada função encontrada, forneça:
-- Nome da função
-- Lista de parâmetros
-- Descrição detalhada da função (explique o que ela faz, o tipo de dado retornado, a estrutura desse retorno e, quando aplicável, os principais atributos dos objetos envolvidos)
-- Sugestões de modernização:
-    - Devem ser **recomendações**, usando verbos no infinitivo (ex.: "Substituir", "Utilizar", "Adicionar").
-    - Devem se basear **somente no código fornecido** e na análise estática.
-    - Devem estar adaptadas à linguagem do código.
-    - Não inventar melhorias que não se aplicam à linguagem ou ao código.
-    - Toda função deve ter uma sugestão.
+Sua tarefa é refatorar e analisar código legado fornecido, aplicando boas práticas de engenharia de software.
 
-Análise Estática (em português-BR):
-{analysis}
+Para cada função identificada no código, siga rigorosamente as instruções abaixo:
 
-Código:
-{code}
+Etapas de raciocínio (Self-Consistency)
 
-Saída (JSON puro):
-Sua resposta DEVE ser um objeto JSON válido seguindo estritamente o esquema abaixo. 
-NÃO inclua crases (\`\`\`), markdown ou texto adicional fora do JSON.
+Gerar múltiplas interpretações possíveis do código e da análise estática.
+
+Comparar as alternativas e selecionar a mais clara, precisa e consistente com o código fornecido.
+
+Produzir apenas a resposta final consolidada no formato JSON solicitado, garantindo que seja coesa, sem contradições internas e totalmente válida.
+
+Requisitos de saída para cada função
+
+Nome da função
+
+Lista de parâmetros (com nomes e, se possível, tipos inferidos a partir do código)
+
+Descrição detalhada da função:
+
+Explique o que a função faz.
+
+Informe o tipo de dado retornado.
+
+Explique a estrutura desse retorno.
+
+Quando aplicável, descreva os principais atributos dos objetos envolvidos.
+
+Sugestões de modernização (sempre em forma de recomendações):
+
+Usar verbos no infinitivo, ex.: "Substituir", "Utilizar", "Adicionar".
+
+Basear-se exclusivamente no código fornecido (sem inventar melhorias que não se aplicam à linguagem ou ao contexto).
+
+Adaptar recomendações às boas práticas da linguagem analisada.
+
+Toda função deve obrigatoriamente ter pelo menos uma sugestão.
+
+Restrições importantes
+
+A análise deve ser feita com base no seguinte bloco de informações:
+
+Análise Estática (português-BR): {analysis}
+
+Código legado: {code}
+
+A saída final DEVE ser um objeto JSON válido, sem crases, markdown ou texto adicional.
+
+O JSON precisa seguir estritamente o formato esperado:
+
 {format_instructions}
+
+Apenas a resposta final consistente deve ser exibida ao usuário.
 `,
     inputVariables: ["language", "analysis", "code"],
     partialVariables: { format_instructions: formatInstructions },

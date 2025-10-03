@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import { Upload, File, X, Check, AlertCircle } from "lucide-react";
+import { Upload, File as FileIcon, X, Check, AlertCircle, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import JSZip from "jszip";
 
 interface UploadSectionProps {
   onShowDocumentation?: () => void;
@@ -14,6 +15,34 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onShowDocumentation }) =>
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
+
+
+const [githubUrl, setGithubUrl] = useState("");
+
+const handleGithubUpload = async () => {
+  if (!githubUrl) return alert('Cole a URL do GitHub');
+
+  const url = new URL(githubUrl);
+  const [owner, repo] = url.pathname.split('/').slice(1, 3);
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/github/download-repo-files?owner=${owner}&repo=${repo}`);
+    if (!response.ok) throw new Error('Erro ao baixar os arquivos');
+
+    const data = await response.json();
+    const files = data.files.map((f: any) => new File([f.content], f.name));
+    setUploadedFiles(prev => [...prev, ...files]);
+  } catch (err) {
+    console.error('Erro ao processar o upload do GitHub:', err);
+    alert('Erro ao processar o upload do GitHub.');
+  }
+};
+
+
+
+
+
+
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -162,6 +191,23 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onShowDocumentation }) =>
                     </Button>
                   </label>
                 </div>
+                <div className="flex gap-2 pt-4 items-center">
+                  <input
+                    type="text"
+                    placeholder="Cole a URL do arquivo no GitHub"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    className="px-3 py-2 border rounded-lg text-sm w-64 text-black"
+                  />
+                  <Button
+                    variant="outline"
+                    className="cursor-pointer flex items-center gap-2"
+                    onClick={handleGithubUpload}
+                  >
+                    <Link className="w-4 h-4" />
+                    Importar
+                  </Button>
+                </div>
               </div>
               
               <div className="text-sm text-muted-foreground">
@@ -175,7 +221,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onShowDocumentation }) =>
           {uploadedFiles.length > 0 && (
             <div className="mt-8">
               <h4 className="text-lg font-semibold mb-4 flex items-center">
-                <File className="w-5 h-5 mr-2 text-primary" />
+                <FileIcon className="w-5 h-5 mr-2 text-primary" />
                 Arquivos Carregados ({uploadedFiles.length})
               </h4>
               

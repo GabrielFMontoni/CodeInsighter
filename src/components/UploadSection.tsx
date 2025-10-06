@@ -1,10 +1,9 @@
 import { useState, useRef } from "react";
-import { Upload, File as FileIcon, X, Check, AlertCircle, Link } from "lucide-react";
+import { Upload, FileText, X, AlertCircle, Link, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import JSZip from "jszip";
 
 interface UploadSectionProps {
   onShowDocumentation?: () => void;
@@ -15,37 +14,65 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onShowDocumentation }) =>
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
+  const [processingStatus, setProcessingStatus] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [useRAG, setUseRAG] = useState(true);
 
-
-const [githubUrl, setGithubUrl] = useState("");
-
-const handleGithubUpload = async () => {
-  if (!githubUrl) return alert('Cole a URL do GitHub');
-
-  const url = new URL(githubUrl);
-  const [owner, repo] = url.pathname.split('/').slice(1, 3);
-
-  try {
-    const response = await fetch(`http://localhost:3000/api/github/download-repo-files?owner=${owner}&repo=${repo}`);
-    if (!response.ok) throw new Error('Erro ao baixar os arquivos');
-
-    const data = await response.json();
-    const files = data.files.map((f: any) => new File([f.content], f.name));
-    setUploadedFiles(prev => [...prev, ...files]);
-  } catch (err) {
-    console.error('Erro ao processar o upload do GitHub:', err);
-    alert('Erro ao processar o upload do GitHub.');
-  }
-};
-
-
-
-
-
-
-  const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+
+  const handleGithubUpload = async () => {
+    if (!githubUrl) return alert('Cole a URL do GitHub');
+
+    try {
+      const url = new URL(githubUrl);
+      const pathParts = url.pathname.split('/').filter(p => p);
+      
+      if (pathParts.length < 2) {
+        alert('URL inválida. Use: https://github.com/owner/repo');
+        return;
+      }
+
+      const [owner, repo] = pathParts;
+
+      // Iniciar indicador de loading
+      setIsProcessing(true);
+      setProcessingProgress(30);
+      setProcessingStatus(`Baixando repositório ${owner}/${repo} do GitHub...`);
+
+      const response = await fetch(`http://localhost:3000/api/github/download-repo-files?owner=${owner}&repo=${repo}`);
+      
+      if (!response.ok) {
+        throw new Error('Erro ao baixar os arquivos');
+      }
+
+      setProcessingProgress(70);
+      setProcessingStatus('Processando arquivos baixados...');
+
+      const data = await response.json();
+      const files = data.files.map((f: any) => new File([f.content], f.name));
+      
+      setProcessingProgress(100);
+      setProcessingStatus(`${files.length} arquivos importados com sucesso!`);
+      
+      setUploadedFiles(prev => [...prev, ...files]);
+      
+      // Resetar após 1 segundo
+      setTimeout(() => {
+        setIsProcessing(false);
+        setProcessingProgress(0);
+        setProcessingStatus('');
+        setGithubUrl('');
+      }, 1000);
+
+    } catch (err) {
+      console.error('Erro ao processar o upload do GitHub:', err);
+      alert('Erro ao processar o upload do GitHub. Verifique a URL e tente novamente.');
+      setIsProcessing(false);
+      setProcessingProgress(0);
+      setProcessingStatus('');
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -75,22 +102,124 @@ const handleGithubUpload = async () => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const detectLanguage = (fileName: string): string => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const langMap: Record<string, string> = {
+      'js': 'JavaScript',
+      'ts': 'TypeScript',
+      'jsx': 'JavaScript',
+      'tsx': 'TypeScript',
+      'py': 'Python',
+      'java': 'Java',
+      'go': 'Go',
+      'rb': 'Ruby',
+      'cs': 'C#',
+      'php': 'PHP',
+      'cobol': 'COBOL',
+      'cbl': 'COBOL',
+      'cpp': 'C++',
+      'c': 'C'
+    };
+    return langMap[ext || ''] || 'JavaScript';
+  };
+
   const processFiles = async () => {
+    if (uploadedFiles.length === 0) return;
+
     setIsProcessing(true);
     setProcessingProgress(0);
-    
-    // Simular processamento
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      setProcessingProgress(i);
-    }
-    
-    setTimeout(() => {
+    setProcessingStatus("Preparando arquivos...");
+
+    try {
+      // Converter arquivos para o formato esperado pela API
+      const filesPayload = await Promise.all(
+        uploadedFiles.map(async (file) => ({
+          name: file.name,
+          content: await file.text()
+        }))
+      );
+
+      setProcessingProgress(20);
+      setProcessingStatus("Analisando estrutura do código...");
+
+      // Etapa 1: Análise estática
+      const analyzeResponse = await fetch('http://localhost:3000/api/analyze/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: filesPayload })
+      });
+
+      if (!analyzeResponse.ok) {
+        throw new Error('Erro na análise estática');
+      }
+
+      const analyzeData = await analyzeResponse.json();
+      console.log('Análise estática concluída:', analyzeData);
+
+      setProcessingProgress(50);
+      setProcessingStatus("Gerando sugestões de refatoração com IA...");
+
+      // Etapa 2: Refatoração com RAG
+      const language = detectLanguage(uploadedFiles[0].name);
+
+      const refactorResponse = await fetch('http://localhost:3000/api/refactor/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language,
+          ingest: useRAG, // Usa RAG se marcado
+          topK: 6,
+          files: filesPayload
+        })
+      });
+
+      if (!refactorResponse.ok) {
+        throw new Error('Erro na refatoração');
+      }
+
+      const refactorData = await refactorResponse.json();
+      console.log('Refatoração concluída:', refactorData);
+
+      // Salvar dados no sessionStorage para o DocumentationViewer
+try {
+  sessionStorage.setItem('refactorData', JSON.stringify(refactorData));
+  console.log('✅ Dados salvos no sessionStorage');
+  
+  // Verificar se foi salvo
+  const verificacao = sessionStorage.getItem('refactorData');
+  if (verificacao) {
+    console.log('✅ Verificação OK - dados encontrados');
+  } else {
+    console.error('❌ Verificação falhou - dados não encontrados');
+  }
+} catch (storageError) {
+  console.error('❌ Erro ao salvar no sessionStorage:', storageError);
+}
+
+      setProcessingProgress(90);
+      setProcessingStatus("Finalizando análise...");
+
+      // Pequeno delay para mostrar o progresso
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setProcessingProgress(100);
+      setProcessingStatus("Análise concluída!");
+
+      // Redirecionar para DocumentationViewer após 1 segundo
+      setTimeout(() => {
+        setIsProcessing(false);
+        setProcessingProgress(0);
+        setProcessingStatus("");
+        onShowDocumentation && onShowDocumentation();
+      }, 1000);
+
+    } catch (err) {
+      console.error('Erro ao processar arquivos:', err);
+      alert('Erro ao processar os arquivos. Verifique se a API está rodando em localhost:3000');
       setIsProcessing(false);
       setProcessingProgress(0);
-      // Redirecionar para DocumentationViewer
-      onShowDocumentation && onShowDocumentation();
-    }, 1000);
+      setProcessingStatus("");
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -103,7 +232,7 @@ const handleGithubUpload = async () => {
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
-    const codeExtensions = ['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'c', 'cs', 'php', 'rb', 'go'];
+    const codeExtensions = ['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'c', 'cs', 'php', 'rb', 'go', 'cobol', 'cbl'];
     return codeExtensions.includes(extension || '') ? '💻' : '📄';
   };
 
@@ -123,7 +252,6 @@ const handleGithubUpload = async () => {
         </div>
 
         <Card className="p-8 bg-gradient-card border-border/50">
-          {/* Upload Area */}
           <div
             className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
               isDragging
@@ -150,7 +278,6 @@ const handleGithubUpload = async () => {
                 </p>
                 
                 <div className="flex gap-2 justify-center">
-                  {/* Selecionar arquivos */}
                   <label>
                     <input
                       ref={fileInputRef}
@@ -158,18 +285,18 @@ const handleGithubUpload = async () => {
                       multiple
                       onChange={handleFileSelect}
                       className="hidden"
-                      accept=".js,.ts,.jsx,.tsx,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.html,.css,.json,.xml,.sql"
+                      accept=".js,.ts,.jsx,.tsx,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.html,.css,.json,.xml,.sql,.cobol,.cbl"
                     />
                     <Button 
                       variant="outline" 
                       className="cursor-pointer"
                       onClick={() => fileInputRef.current?.click()}
+                      disabled={isProcessing}
                     >
                       Selecionar Arquivos
                     </Button>
                   </label>
 
-                  {/* Selecionar pasta */}
                   <label>
                     <input
                       ref={folderInputRef}
@@ -186,23 +313,27 @@ const handleGithubUpload = async () => {
                       variant="outline" 
                       className="cursor-pointer"
                       onClick={() => folderInputRef.current?.click()}
+                      disabled={isProcessing}
                     >
                       Selecionar Pasta
                     </Button>
                   </label>
                 </div>
-                <div className="flex gap-2 pt-4 items-center">
+
+                <div className="flex gap-2 pt-4 items-center justify-center">
                   <input
                     type="text"
-                    placeholder="Cole a URL do arquivo no GitHub"
+                    placeholder="Cole a URL do repositório GitHub"
                     value={githubUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
-                    className="px-3 py-2 border rounded-lg text-sm w-64 text-black"
+                    className="px-3 py-2 border rounded-lg text-sm w-64 bg-background"
+                    disabled={isProcessing}
                   />
                   <Button
                     variant="outline"
                     className="cursor-pointer flex items-center gap-2"
                     onClick={handleGithubUpload}
+                    disabled={isProcessing}
                   >
                     <Link className="w-4 h-4" />
                     Importar
@@ -217,13 +348,27 @@ const handleGithubUpload = async () => {
             </div>
           </div>
 
-          {/* File List */}
           {uploadedFiles.length > 0 && (
             <div className="mt-8">
-              <h4 className="text-lg font-semibold mb-4 flex items-center">
-                <FileIcon className="w-5 h-5 mr-2 text-primary" />
-                Arquivos Carregados ({uploadedFiles.length})
-              </h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-semibold flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-primary" />
+                  Arquivos Carregados ({uploadedFiles.length})
+                </h4>
+                
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useRAG}
+                    onChange={(e) => setUseRAG(e.target.checked)}
+                    className="w-4 h-4 rounded border-border"
+                    disabled={isProcessing}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    Usar RAG (contexto semântico)
+                  </span>
+                </label>
+              </div>
               
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {uploadedFiles.map((file, index) => (
@@ -250,6 +395,7 @@ const handleGithubUpload = async () => {
                         variant="ghost"
                         onClick={() => removeFile(index)}
                         className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+                        disabled={isProcessing}
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -260,21 +406,19 @@ const handleGithubUpload = async () => {
             </div>
           )}
 
-          {/* Processing */}
           {isProcessing && (
             <div className="mt-8 p-6 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <span className="font-medium">Processando arquivos com IA...</span>
+                <span className="font-medium">{processingStatus}</span>
               </div>
               <Progress value={processingProgress} className="mb-2" />
               <p className="text-sm text-muted-foreground">
-                Analisando estrutura, funções e dependências ({processingProgress}%)
+                {processingProgress}% concluído
               </p>
             </div>
           )}
 
-          {/* Action Buttons */}
           {uploadedFiles.length > 0 && !isProcessing && (
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Button
@@ -295,7 +439,6 @@ const handleGithubUpload = async () => {
             </div>
           )}
 
-          {/* Tips */}
           <div className="mt-8 p-4 bg-accent/10 border border-accent/20 rounded-lg">
             <div className="flex items-start space-x-2">
               <AlertCircle className="w-5 h-5 text-accent mt-0.5" />
@@ -305,6 +448,7 @@ const handleGithubUpload = async () => {
                   <li>• Inclua arquivos de configuração (package.json, requirements.txt, etc.)</li>
                   <li>• Envie a estrutura completa do projeto para análise arquitetural</li>
                   <li>• Arquivos com comentários geram documentação mais rica</li>
+                  <li>• Ative o RAG para análises contextualizadas usando embeddings</li>
                 </ul>
               </div>
             </div>
@@ -314,7 +458,5 @@ const handleGithubUpload = async () => {
     </section>
   );
 };
-
-import { Brain } from "lucide-react";
 
 export default UploadSection;

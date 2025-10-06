@@ -10,9 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, "../../.env") });
 
-
 const refactoringSchema = z.object({
-    refactoredCode: z.string(),
+    refactoredCode: z.string().optional(),
     refactoringTips: z.array(z.string()),
     functionsAnalysis: z.array(
         z.object({
@@ -20,82 +19,85 @@ const refactoringSchema = z.object({
             parameters: z.array(z.string()),
             description: z.string(),
             modernization: z.string(),
+            refactoredCode: z.string().optional(), // ← Código refatorado por função
         })
     ),
 });
 
-const outputParser = StructuredOutputParser.fromZodSchema(refactoringSchema);
-const formatInstructions = outputParser.getFormatInstructions();
+// Parser customizado que remove markdown
+class CustomStructuredOutputParser extends StructuredOutputParser {
+    async parse(text) {
+        let cleanedText = text.trim();
+        cleanedText = cleanedText.replace(/^```json\s*/i, '');
+        cleanedText = cleanedText.replace(/^```\s*/, '');
+        cleanedText = cleanedText.replace(/\s*```$/, '');
+        return super.parse(cleanedText.trim());
+    }
+}
 
+const outputParser = CustomStructuredOutputParser.fromZodSchema(refactoringSchema);
+const formatInstructions = outputParser.getFormatInstructions();
 
 const promptTemplate = new PromptTemplate({
     template: `
 Você é um arquiteto de software sênior especializado em {language}.
 
-Sua tarefa é refatorar e analisar código legado fornecido, aplicando boas práticas de engenharia de software.
+IMPORTANTE: Toda a sua resposta DEVE ser em PORTUGUÊS BRASILEIRO (pt-BR).
+
+Sua tarefa é refatorar e analisar código legado fornecido, aplicando boas práticas de engenharia de software modernas.
 
 Para cada função identificada no código, siga rigorosamente as instruções abaixo:
 
-Etapas de raciocínio (Self-Consistency)
+REQUISITOS DE SAÍDA PARA CADA FUNÇÃO (EM PORTUGUÊS):
 
-Gerar múltiplas interpretações possíveis do código e da análise estática.
+1. Nome da função
 
-Comparar as alternativas e selecionar a mais clara, precisa e consistente com o código fornecido.
+2. Lista de parâmetros (com nomes e tipos quando possível)
 
-Produzir apenas a resposta final consolidada no formato JSON solicitado, garantindo que seja coesa, sem contradições internas e totalmente válida.
+3. Descrição concisa da função (máximo 3 linhas, EM PORTUGUÊS)
 
-Requisitos de saída para cada função
+4. Código refatorado (refactoredCode):
+   - Reescreva APENAS a função específica (não a classe inteira)
+   - Use sintaxe moderna da linguagem {language}
+   - Máximo de 30 linhas de código
+   - Inclua apenas o código da função, sem imports ou contexto extra
+   - Aplique: async/await quando apropriado, arrow functions, destructuring, tratamento de erros
+   
+5. Sugestão de modernização (modernization) EM PORTUGUÊS:
+   - Uma frase curta e objetiva (máximo 2 linhas)
+   - Use verbos no infinitivo (Exemplo: "Utilizar", "Implementar", "Adicionar")
 
-Nome da função
+6. Dicas de refatoração gerais (refactoringTips) EM PORTUGUÊS:
+   - Lista de recomendações gerais para melhorar o código
+   - Máximo 5 dicas
+   - Cada dica deve ter no máximo 2 linhas
 
-Lista de parâmetros (com nomes e, se possível, tipos inferidos a partir do código)
+INFORMAÇÕES PARA ANÁLISE:
 
-Descrição detalhada da função:
-
-Explique o que a função faz.
-
-Informe o tipo de dado retornado.
-
-Explique a estrutura desse retorno.
-
-Quando aplicável, descreva os principais atributos dos objetos envolvidos.
-
-Sugestões de modernização (sempre em forma de recomendações):
-
-Usar verbos no infinitivo, ex.: "Substituir", "Utilizar", "Adicionar".
-
-Basear-se exclusivamente no código fornecido (sem inventar melhorias que não se aplicam à linguagem ou ao contexto).
-
-Adaptar recomendações às boas práticas da linguagem analisada.
-
-Toda função deve obrigatoriamente ter pelo menos uma sugestão.
-
-Restrições importantes
-
-A análise deve ser feita com base no seguinte bloco de informações:
-
-Análise Estática (português-BR): {analysis}
+Análise Estática: {analysis}
 
 Código legado: {code}
 
-A saída final DEVE ser um objeto JSON válido, sem crases, markdown ou texto adicional.
-
-O JSON precisa seguir estritamente o formato esperado:
+REGRAS CRÍTICAS:
+- ESCREVA TUDO EM PORTUGUÊS BRASILEIRO
+- Retorne SOMENTE JSON puro, sem \`\`\`json ou \`\`\`
+- O campo "refactoredCode" deve conter APENAS o código da função, não a classe inteira
+- Descrições, sugestões e dicas DEVEM estar em português
+- Seja conciso: descrições curtas, código enxuto
+- Use escape correto para strings JSON (\\n para quebras de linha, \\" para aspas)
 
 {format_instructions}
 
-Apenas a resposta final consistente deve ser exibida ao usuário.
+LEMBRE-SE: Toda a saída deve ser em PORTUGUÊS BRASILEIRO, incluindo descrições, sugestões e dicas.
 `,
     inputVariables: ["language", "analysis", "code"],
     partialVariables: { format_instructions: formatInstructions },
 });
-
 const model = new ChatGoogleGenerativeAI({
-    model: "gemini-1.5-flash",
+    model: process.env.GOOGLE_MODEL || "gemini-2.0-flash",
     temperature: 0.2,
     apiKey: process.env.GOOGLE_API_KEY,
 });
-
 
 const chain = promptTemplate.pipe(model).pipe(outputParser);
 

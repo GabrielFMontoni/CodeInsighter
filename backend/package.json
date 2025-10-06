@@ -1,12 +1,14 @@
 {
   "type": "module",
   "dependencies": {
-    "@langchain/google-genai": "^0.2.16",
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/google-genai": "^0.2.18",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "langchain": "^0.3.31",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "zod": "^3.23.8"
   },
   "scripts": {
     "start": "node server.js"

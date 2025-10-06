@@ -19,19 +19,43 @@ const refactoringSchema = z.object({
             parameters: z.array(z.string()),
             description: z.string(),
             modernization: z.string(),
-            refactoredCode: z.string().optional(), // ← Código refatorado por função
+            refactoredCode: z.string().optional(),
         })
     ),
 });
 
-// Parser customizado que remove markdown
+// Parser aprimorado com limpeza mais robusta
 class CustomStructuredOutputParser extends StructuredOutputParser {
     async parse(text) {
         let cleanedText = text.trim();
+        
+        // Remove markdown code blocks
         cleanedText = cleanedText.replace(/^```json\s*/i, '');
         cleanedText = cleanedText.replace(/^```\s*/, '');
         cleanedText = cleanedText.replace(/\s*```$/, '');
-        return super.parse(cleanedText.trim());
+        cleanedText = cleanedText.trim();
+        
+        // Tenta corrigir escape de quebras de linha comum
+        // Se encontrar \\n literal, substitui por \n real
+        cleanedText = cleanedText.replace(/\\\\n/g, '\\n');
+        cleanedText = cleanedText.replace(/\\\\t/g, '\\t');
+        cleanedText = cleanedText.replace(/\\\\"/g, '\\"');
+        
+        try {
+            return super.parse(cleanedText);
+        } catch (error) {
+            console.error("❌ Erro ao parsear JSON. Texto recebido:");
+            console.error(cleanedText.substring(0, 500) + "...");
+            
+            // Tenta um fallback: parse manual e re-stringify
+            try {
+                const parsed = JSON.parse(cleanedText);
+                return parsed;
+            } catch (fallbackError) {
+                console.error("❌ Fallback também falhou");
+                throw error;
+            }
+        }
     }
 }
 
@@ -78,13 +102,24 @@ Análise Estática: {analysis}
 
 Código legado: {code}
 
-REGRAS CRÍTICAS:
+REGRAS CRÍTICAS PARA FORMATO JSON:
 - ESCREVA TUDO EM PORTUGUÊS BRASILEIRO
 - Retorne SOMENTE JSON puro, sem \`\`\`json ou \`\`\`
 - O campo "refactoredCode" deve conter APENAS o código da função, não a classe inteira
 - Descrições, sugestões e dicas DEVEM estar em português
 - Seja conciso: descrições curtas, código enxuto
-- Use escape correto para strings JSON (\\n para quebras de linha, \\" para aspas)
+
+ATENÇÃO ESPECIAL AO ESCAPE DE STRINGS NO JSON:
+- Use \\n para quebras de linha (não \\\\n)
+- Use \\" para aspas duplas dentro de strings (não \\\\")
+- Use \\t para tabulações (não \\\\t)
+- Exemplo correto: "code": "public void test() \\n{{ return true; }}"
+- Exemplo ERRADO: "code": "public void test() \\\\n{{ return true; }}"
+
+TESTE SEU JSON ANTES DE ENVIAR:
+- Certifique-se de que é JSON válido
+- Verifique se todas as chaves estão entre aspas duplas
+- Verifique se não há vírgulas extras no final de arrays ou objetos
 
 {format_instructions}
 
@@ -93,10 +128,12 @@ LEMBRE-SE: Toda a saída deve ser em PORTUGUÊS BRASILEIRO, incluindo descriçõ
     inputVariables: ["language", "analysis", "code"],
     partialVariables: { format_instructions: formatInstructions },
 });
+
 const model = new ChatGoogleGenerativeAI({
     model: process.env.GOOGLE_MODEL || "gemini-2.0-flash",
-    temperature: 0.2,
+    temperature: 0.2, // Mantém baixo para saídas mais consistentes
     apiKey: process.env.GOOGLE_API_KEY,
+    maxOutputTokens: 4096, // Aumenta limite se necessário
 });
 
 const chain = promptTemplate.pipe(model).pipe(outputParser);

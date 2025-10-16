@@ -164,9 +164,9 @@ LEMBRE-SE:
 
 const model = new ChatGoogleGenerativeAI({
     model: process.env.GOOGLE_MODEL || "gemini-2.0-flash",
-    temperature: 0.1, // Reduzido para mais consistência
+    temperature: 0.1, // Mais Consistencia
     apiKey: process.env.GOOGLE_API_KEY,
-    maxOutputTokens: 8192, // Aumentado
+    maxOutputTokens: 8192, // Saidas maiores
 });
 
 const chain = promptTemplate.pipe(model).pipe(outputParser);

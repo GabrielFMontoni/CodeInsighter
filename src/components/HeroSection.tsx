@@ -12,7 +12,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onShowDocumentation }) => {
   return (
     <section className="pt-24 pb-16 px-6">
       <div className="container mx-auto text-center">
-        {/* Hero Content */}
         <div className="max-w-4xl mx-auto mb-16">
           <div className="inline-flex items-center px-4 py-2 rounded-full ">
           
@@ -61,7 +60,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onShowDocumentation }) => {
             </Button>
           </div>
 
-          {/* Hero Image */}
           <div className="relative max-w-4xl mx-auto">
             <div className="absolute inset-0 bg-gradient-primary rounded-2xl blur-3xl opacity-20 animate-glow-pulse"></div>
             <img 
@@ -72,7 +70,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onShowDocumentation }) => {
           </div>
         </div>
 
-        {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <Card className="p-8 bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300 hover:-translate-y-2">
             <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">

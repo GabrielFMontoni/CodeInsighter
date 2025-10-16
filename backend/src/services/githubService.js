@@ -16,7 +16,6 @@ async function getRefSha(owner, repo, ref = "main") {
     const js = await r.json();
     return js.object?.sha;
   }
-  // try tags/commits directly
   return ref;
 }
 

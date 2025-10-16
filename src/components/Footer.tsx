@@ -34,7 +34,6 @@ const Footer = () => {
               <li><a href="#" className="hover:text-primary transition-colors">Recursos</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Documentação</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">API</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Suporte</a></li>
             </ul>
           </div>
 
@@ -43,8 +42,6 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#" className="hover:text-primary transition-colors">Sobre</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">FIAP Challenge</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Ford Partnership</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
             </ul>
           </div>
         </div>

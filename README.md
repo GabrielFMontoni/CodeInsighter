@@ -48,30 +48,45 @@ O projeto utiliza um design system moderno e consistente:
 
 ## 🚀 Como Executar
 
-1. Clone o repositório:
+1. Clone o repositório para a sua máquina local, abra o Git Bash em algum lugar de sua máquina e digite: 
 ```bash
 git clone https://github.com/GabrielFMontoni/CodeInsighter.git
 ```
+2. Abra a pasta do projeto na sua IDE de preferência
 
-2. Instale as dependências:
+3. Crie o arquivo .env na pasta backend
+Antes de iniciar, é necessário criar um arquivo chamado .env na pasta backend do projeto com as seguintes variáveis de ambiente:
+GOOGLE_API_KEY= SUA_CHAVE_GEMINI_API
+GITHUB_TOKEN= SEU_TOKEN_GITHUB
+GOOGLE_MODEL=gemini-2.0-flash
+GOOGLE_EMBEDDINGS_MODEL=text-embedding-004
+PORT=3000
+(É importante manter a porta como 3000, pois é a porta que a API do backend irá rodar)
+ 
+Onde obter as chaves:
+•	GOOGLE_API_KEY:
+Gere uma chave de API na Google AI Studio para utilizar o modelo Gemini 2.0 Flash.
+Essa chave é usada pela IA do Code Insighter para processar, documentar e sugerir melhorias no código.
+•	GITHUB_TOKEN:
+Crie um token pessoal de acesso no GitHub Developer Settings (opção “Tokens (classic)”) com permissão de leitura em repositórios.
+Esse token é utilizado para realizar requisições seguras e buscar metadados de código.
+
+4. Abra o terminal na IDE (Ctrl + ‘) e instale as dependências com o comando
 ```bash
-cd codeinsighter
-npm install
+   npm install
 ```
 
-3. Execute o projeto:
+5. Execute o projeto
+O comando abaixo instalará dependências do backend e frontend, e iniciará ambos simultaneamente:
 ```bash
-npm run dev
+   npm run dev
 ```
+6. Acesse no navegador
+Após a inicialização, o projeto poderá ser acessado em:
+http://localhost:8080 
 
 📱 Screenshots
 
-🤝 Contribuição
-Este projeto faz parte do Ford Innovation Challenge em parceria com a FIAP. Contribuições são bem-vindas através de pull requests.
 
-📄 Licença
-
-
-✨ Equipe
 
 <div align="center"> Desenvolvido com 💙 para o Ford Innovation Challenge x FIAP </div>

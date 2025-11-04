@@ -1,4 +1,5 @@
 import { Code2, Github, Linkedin, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -40,7 +41,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Empresa</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Sobre</a></li>
+                <li><Link to="/sobre" className="hover:text-primary transition-colors">Sobre</Link></li>
               <li><a href="#" className="hover:text-primary transition-colors">FIAP Challenge</a></li>
             </ul>
           </div>

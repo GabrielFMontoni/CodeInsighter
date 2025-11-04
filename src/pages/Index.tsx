@@ -8,6 +8,12 @@ import VideoPitch from "@/components/VideoPitch";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<"home" | "documentation" | "video">("home");
+  const [docRefreshKey, setDocRefreshKey] = useState(0);
+
+  const showDocumentation = () => {
+    setActiveTab("documentation");
+    setDocRefreshKey(prev => prev + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,7 +33,7 @@ const Index = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("documentation")}
+              onClick={() => showDocumentation()}
               className={`px-3 py-1 rounded-md text-sm font-medium ${
                 activeTab === "documentation" ? "bg-primary text-white" : "bg-muted"
               }`}
@@ -46,11 +52,17 @@ const Index = () => {
           </div>
         </div>
 
-        <>
-            <HeroSection onShowDocumentation={() => setActiveTab("documentation")} />
-            <UploadSection onShowDocumentation={() => setActiveTab("documentation")} />
-              <VideoPitch />
+        {/* Renderização condicional */}
+        {activeTab === "home" && (
+          <>
+            <HeroSection onShowDocumentation={showDocumentation} />
+            <UploadSection onShowDocumentation={showDocumentation} />
           </>
+        )}
+
+        {activeTab === "documentation" && <DocumentationViewer key={docRefreshKey} />}
+
+        {activeTab === "video" && <VideoPitch />}
       </main>
 
       <Footer />

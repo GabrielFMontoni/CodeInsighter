@@ -85,6 +85,7 @@ git clone https://github.com/GabrielFMontoni/CodeInsighter.git
   Crie um token pessoal de acesso no GitHub Developer Settings (opção “Tokens (classic)”) com permissão de leitura em repositórios.
   Esse token é utilizado para realizar requisições seguras e buscar metadados de código.
 
+OBS: Lembre-se de salvar o arquivo após editar as variáveis.
 
 4. Abra o terminal na IDE (Ctrl + ‘) e instale as dependências com o comando
 ```bash

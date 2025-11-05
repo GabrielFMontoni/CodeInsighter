@@ -61,6 +61,7 @@ git clone https://github.com/GabrielFMontoni/CodeInsighter.git
 3. Crie o arquivo .env na pasta backend
    
     Antes de iniciar, é necessário criar um arquivo chamado .env na pasta backend do projeto com as seguintes variáveis de ambiente:
+   
     GOOGLE_API_KEY= SUA_CHAVE_GEMINI_API
     
     GITHUB_TOKEN= SEU_TOKEN_GITHUB

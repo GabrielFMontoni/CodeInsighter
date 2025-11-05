@@ -63,9 +63,13 @@ git clone https://github.com/GabrielFMontoni/CodeInsighter.git
     Antes de iniciar, é necessário criar um arquivo chamado .env na pasta backend do projeto com as seguintes variáveis de ambiente:
    
     GOOGLE_API_KEY= SUA_CHAVE_GEMINI_API
+   
     GITHUB_TOKEN= SEU_TOKEN_GITHUB
+   
     GOOGLE_MODEL=gemini-2.0-flash
+   
     GOOGLE_EMBEDDINGS_MODEL=text-embedding-004
+   
     PORT=3000
 
 (É importante manter a porta como 3000, pois é a porta que a API do backend irá rodar)
